@@ -53,6 +53,22 @@ def main() -> int:
     )
     parser.add_argument("--levels", default="", help="难度列表，如 9 或 0,3,6,9；默认 0..N-1")
     parser.add_argument("--task", default="Robot-StepStone-v0")
+    parser.add_argument(
+        "--max-step",
+        type=float,
+        default=None,
+        help="覆盖地形桩距上限（米）。p13 及更早的模型在 0.46 上训练，p29 之后在 0.44 上训练。",
+    )
+    parser.add_argument(
+        "--legacy-obs330",
+        action="store_true",
+        help="去掉 wheel_offset（8 维）观测，回到 330 维 actor 观测，用于加载 p13 这类旧模型。",
+    )
+    parser.add_argument(
+        "--legacy-noise",
+        action="store_true",
+        help="把单桩位置扰动改回 p13 时代的旧曲线（最高等级 3cm），用于加载旧模型。",
+    )
     parser.add_argument("--device", default="cuda:0")
     args = parser.parse_args()
 
@@ -82,6 +98,19 @@ def main() -> int:
             gen.curriculum = True
             gen.num_rows = 10
             gen.num_cols = 1
+            if args.max_step is not None:
+                gen.max_step = float(args.max_step)
+
+    if args.legacy_obs330:
+        for group in ("actor", "critic"):
+            env_cfg.observations[group].terms.pop("wheel_offset", None)
+
+    if args.legacy_noise:
+        import numpy as np
+
+        from robot.terrains import stepping_stones as _ss
+
+        _ss._NOISE = np.array([0.00, 0.00, 0.01, 0.02, 0.025, 0.030], dtype=float)
 
     env = ManagerBasedRlEnv(cfg=env_cfg, device=args.device)
 
