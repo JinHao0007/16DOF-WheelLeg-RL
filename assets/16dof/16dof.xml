@@ -65,7 +65,7 @@
           <geom name="FR_thigh_collision" class="collision" size="0.04855 0.159418" pos="-0.000150871 -0.03395 -0.0980584" type="cylinder" contype="0" conaffinity="0"/>
           <body name="FR_calf" pos="-0.00014431 -0.0445 -0.23012">
             <inertial pos="0.000154306 -0.0317345 -0.178726" quat="0.517909 0.478759 0.478211 -0.523331" mass="1" diaginertia="0.000446194 0.00681815 0.00700961"/>
-            <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.7 -0.9" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
+            <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.7 -1.21" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
             <geom class="visual" mesh="FR_calf"/>
             <geom name="FR_calf_collision" class="collision" size="0.025 0.158937" pos="-2.75243e-05 -0.037 -0.110247" type="cylinder" contype="0" conaffinity="0"/>
             <body name="FR_wheel_link" pos="0 -0.041 -0.23">
@@ -89,7 +89,7 @@
           <geom name="FL_thigh_collision" class="collision" size="0.04855 0.159418" pos="-0.000194089 0.03395 -0.0980587" type="cylinder" contype="0" conaffinity="0"/>
           <body name="FL_calf" pos="-0.00014431 0.0445 -0.23012">
             <inertial pos="0.000154034 0.0317345 -0.178726" quat="0.478745 0.517917 0.523322 -0.478225" mass="1" diaginertia="0.000446193 0.00681815 0.00700961"/>
-            <joint name="FL_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.7 -0.9" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
+            <joint name="FL_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.7 -1.21" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
             <geom class="visual" mesh="FL_calf"/>
             <geom name="FL_calf_collision" class="collision" size="0.025 0.158937" pos="-2.75243e-05 0.037 -0.110247" type="cylinder" contype="0" conaffinity="0"/>
             <body name="FL_wheel_link" pos="0 0.041 -0.23">
@@ -113,7 +113,7 @@
           <geom name="RL_thigh_collision" class="collision" size="0.04855 0.159418" pos="0.000150871 0.03395 -0.0980584" type="cylinder" contype="0" conaffinity="0"/>
           <body name="RL_calf" pos="0.00014431 0.0445 -0.23012">
             <inertial pos="-0.000154306 0.0317345 -0.178726" quat="0.478211 0.523331 0.517909 -0.478759" mass="1" diaginertia="0.000446194 0.00681815 0.00700961"/>
-            <joint name="RL_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="0.9 2.7" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
+            <joint name="RL_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="1.21 2.7" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
             <geom class="visual" mesh="RL_calf"/>
             <geom name="RL_calf_collision" class="collision" size="0.025 0.158937" pos="2.75243e-05 0.037 -0.110247" type="cylinder" contype="0" conaffinity="0"/>
             <body name="RL_wheel_link" pos="0 0.041 -0.23">
@@ -137,7 +137,7 @@
           <geom name="RR_thigh_collision" class="collision" size="0.04855 0.159418" pos="0.000194089 -0.03395 -0.0980587" type="cylinder" contype="0" conaffinity="0"/>
           <body name="RR_calf" pos="0.00014431 -0.0445 -0.23012">
             <inertial pos="-0.000154034 -0.0317345 -0.178726" quat="0.523322 0.478225 0.478745 -0.517917" mass="1" diaginertia="0.000446193 0.00681815 0.00700961"/>
-            <joint name="RR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="0.9 2.7" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
+            <joint name="RR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="1.21 2.7" armature="0.01" damping="0.2 0.2 0.2" frictionloss="0.2"/>
             <geom class="visual" mesh="RR_calf"/>
             <geom name="RR_calf_collision" class="collision" size="0.025 0.158937" pos="2.75243e-05 -0.037 -0.110247" type="cylinder" contype="0" conaffinity="0"/>
             <body name="RR_wheel_link" pos="0 -0.041 -0.23">
@@ -161,10 +161,10 @@
     <general name="RL_thigh_joint_servo" joint="RL_thigh_joint" ctrllimited="true" ctrlrange="-1.5 1.2" forcelimited="true" forcerange="-30 30" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
     <general name="RR_hip_joint_servo" joint="RR_hip_joint" ctrllimited="true" ctrlrange="-0.9 0.7" forcelimited="true" forcerange="-30 30" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
     <general name="RR_thigh_joint_servo" joint="RR_thigh_joint" ctrllimited="true" ctrlrange="-1.5 1.2" forcelimited="true" forcerange="-30 30" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
-    <general name="FL_calf_joint_servo" joint="FL_calf_joint" ctrllimited="true" ctrlrange="-2.7 -0.9" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
-    <general name="FR_calf_joint_servo" joint="FR_calf_joint" ctrllimited="true" ctrlrange="-2.7 -0.9" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
-    <general name="RL_calf_joint_servo" joint="RL_calf_joint" ctrllimited="true" ctrlrange="0.9 2.7" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
-    <general name="RR_calf_joint_servo" joint="RR_calf_joint" ctrllimited="true" ctrlrange="0.9 2.7" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
+    <general name="FL_calf_joint_servo" joint="FL_calf_joint" ctrllimited="true" ctrlrange="-2.7 -1.21" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
+    <general name="FR_calf_joint_servo" joint="FR_calf_joint" ctrllimited="true" ctrlrange="-2.7 -1.21" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
+    <general name="RL_calf_joint_servo" joint="RL_calf_joint" ctrllimited="true" ctrlrange="1.21 2.7" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
+    <general name="RR_calf_joint_servo" joint="RR_calf_joint" ctrllimited="true" ctrlrange="1.21 2.7" forcelimited="true" forcerange="-20 20" biastype="affine" gainprm="50" biasprm="0 -50 -1.5"/>
     <general name="FL_wheel_joint_servo" joint="FL_wheel_joint" ctrllimited="true" ctrlrange="-20 20" forcelimited="true" forcerange="-5 5" biastype="affine" biasprm="0 0 -1"/>
     <general name="FR_wheel_joint_servo" joint="FR_wheel_joint" ctrllimited="true" ctrlrange="-20 20" forcelimited="true" forcerange="-5 5" biastype="affine" biasprm="0 0 -1"/>
     <general name="RL_wheel_joint_servo" joint="RL_wheel_joint" ctrllimited="true" ctrlrange="-20 20" forcelimited="true" forcerange="-5 5" biastype="affine" biasprm="0 0 -1"/>

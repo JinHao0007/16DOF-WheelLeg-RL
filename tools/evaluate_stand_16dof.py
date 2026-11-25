@@ -101,9 +101,10 @@ def configure_eval(task: str, num_envs: int, stance: str):
             reference_height = 0.376
         else:
             pose, reference_height = OLD_STAND_POSE, 0.284
-        robot_cfg = cfg.scene.entities["robot"]
+        robot_cfg = robot.robot_16dof.get_legacy_robot_cfg()
         cfg.scene.entities["robot"] = replace(
             robot_cfg,
+            spec_fn=robot.robot_16dof.get_legacy_spec,
             init_state=replace(
                 robot_cfg.init_state,
                 pos=(0.0, 0.0, reference_height),

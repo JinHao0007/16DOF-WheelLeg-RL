@@ -99,6 +99,10 @@ def main() -> None:
         a.forcelimited = mujoco.mjtLimited.mjLIMITED_TRUE
 
     # 关节限位查表（用于 ctrlrange）
+    for name, bounds in REFERENCE["calf_limits_rad"].items():
+        joint = spec.joint(name)
+        joint.range = bounds
+        joint.limited = mujoco.mjtLimited.mjLIMITED_TRUE
     limits = {}
     for j in spec.joints:
         if j.name and j.type == mujoco.mjtJoint.mjJNT_HINGE:
@@ -111,7 +115,7 @@ def main() -> None:
             add_position(f"{leg}_{part}_joint", KP[part], lo, hi, EFFORT[part])
     # 再 4 个 calf
     for leg in LEGS:
-        lo, hi = limits.get(f"{leg}_calf_joint", (-2.7, -0.9))
+        lo, hi = limits[f"{leg}_calf_joint"]
         add_position(f"{leg}_calf_joint", KP["calf"], lo, hi, EFFORT["calf"])
     # 最后 4 个 wheel
     for leg in LEGS:

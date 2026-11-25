@@ -45,10 +45,15 @@ def main():
             reset_joints = cfg.events.get("reset_joints")
             if reset_joints is not None:
                 assert reset_joints.params["position_range"] == (0.0, 0.0)
+            for name, bounds in robot_16dof.CALF_LIMITS.items():
+                assert cfg.actions["leg_joint_pos"].clip[name] == tuple(bounds)
         assert "zero4590" in load_rl_cfg(task).experiment_name
     legacy = load_env_cfg("Robot-16DOF-Stand-LegacyV2-v0")
     assert legacy.scene.entities["robot"].init_state.joint_pos["FR_thigh_joint"] == 0.065
     assert legacy.rewards["base_height_l2"].params["target_height"] == 0.376
+    legacy_model = legacy.scene.entities["robot"].spec_fn().compile()
+    legacy_jid = mujoco.mj_name2id(legacy_model, mujoco.mjtObj.mjOBJ_JOINT, "FR_calf_joint")
+    np.testing.assert_allclose(legacy_model.jnt_range[legacy_jid], [-2.7, -0.9])
 
     model = mujoco.MjModel.from_xml_path(str(ROOT / "assets" / "16dof" / "16dof.xml"))
     data = mujoco.MjData(model)
@@ -59,6 +64,8 @@ def main():
         assert np.isclose(data.qpos[model.jnt_qposadr[jid]], value)
         for actuator in np.flatnonzero(model.actuator_trnid[:, 0] == jid):
             assert np.isclose(data.ctrl[actuator], value)
+        if name in robot_16dof.CALF_LIMITS:
+            np.testing.assert_allclose(model.jnt_range[jid], robot_16dof.CALF_LIMITS[name])
 
     cfg = load_env_cfg("Robot-16DOF-Stand-v0", play=True)
     cfg.scene.num_envs = 8
@@ -76,6 +83,30 @@ def main():
         expected = torch.tensor([pose[name] for name in term.target_names], device="cuda:0")
         target_error = float((term._processed_actions - expected).abs().max().item())
         assert target_error < 1e-6, target_error
+        compiled = env.sim.mj_model
+        compiled_bounds = []
+        for name, bounds in robot_16dof.CALF_LIMITS.items():
+            jid = mujoco.mj_name2id(compiled, mujoco.mjtObj.mjOBJ_JOINT, "robot/" + name)
+            np.testing.assert_allclose(compiled.jnt_range[jid], bounds)
+            aids = np.flatnonzero(compiled.actuator_trnid[:, 0] == jid)
+            assert len(aids) > 0
+            for aid in aids:
+                assert compiled.actuator_ctrllimited[aid], name
+                np.testing.assert_allclose(compiled.actuator_ctrlrange[aid], bounds)
+            compiled_bounds.append({"joint": name, "range_rad": bounds,
+                                    "all_actuator_targets_limited": True})
+        # Large positive/negative policy output must clamp processed calf
+        # position targets; run enough calls to fill the delayed action buffer.
+        for magnitude in (100.0, -100.0):
+            for _ in range(5):
+                env.action_manager.process_action(torch.full(
+                    (8, 16), magnitude, device="cuda:0"))
+            for index, name in enumerate(term.target_names):
+                if name in robot_16dof.CALF_LIMITS:
+                    bounds = robot_16dof.CALF_LIMITS[name]
+                    target = term._processed_actions[:, index]
+                    assert (target >= bounds[0] - 1e-6).all()
+                    assert (target <= bounds[1] + 1e-6).all()
         result = {
             "pose_version": reference["version"],
             "base_height_m": reference["base_height_m"],
@@ -85,6 +116,9 @@ def main():
             "xml_home_and_limits": "passed",
             "legacy_v2_reference": "preserved",
             "compiled_actuators": env.sim.mj_model.nu,
+            "limits_version": reference["limits_version"],
+            "calf_limits": compiled_bounds,
+            "extreme_policy_target_clamping": "passed",
             "not_a_stability_evaluation": True,
         }
         output = ROOT / ".cache" / "zero4590_verification.json"

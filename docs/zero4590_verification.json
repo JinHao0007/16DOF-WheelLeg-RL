@@ -12,5 +12,41 @@
   "xml_home_and_limits": "passed",
   "legacy_v2_reference": "preserved",
   "compiled_actuators": 32,
+  "limits_version": "calf-1.21-2.7-v1",
+  "calf_limits": [
+    {
+      "joint": "FR_calf_joint",
+      "range_rad": [
+        -2.7,
+        -1.21
+      ],
+      "all_actuator_targets_limited": true
+    },
+    {
+      "joint": "FL_calf_joint",
+      "range_rad": [
+        -2.7,
+        -1.21
+      ],
+      "all_actuator_targets_limited": true
+    },
+    {
+      "joint": "RL_calf_joint",
+      "range_rad": [
+        1.21,
+        2.7
+      ],
+      "all_actuator_targets_limited": true
+    },
+    {
+      "joint": "RR_calf_joint",
+      "range_rad": [
+        1.21,
+        2.7
+      ],
+      "all_actuator_targets_limited": true
+    }
+  ],
+  "extreme_policy_target_clamping": "passed",
   "not_a_stability_evaluation": true
 }

@@ -36,8 +36,8 @@ New-Item -ItemType Directory -Force -Path $env:TMP | Out-Null
 if ([string]::IsNullOrWhiteSpace($Checkpoint)) {
     $expDirs = if ($Task -match "Robot-16DOF-Stand") {
         # The latest 16DOF stance retraining has a robot-specific experiment name.
-        @("robot_stand_16dof_zero4590_v1", "robot_stand_16dof_v2")
-    } elseif ($Task -match "Robot-16DOF-Flat") { @("robot_flat_16dof_zero4590_v1") }
+        @("robot_stand_16dof_zero4590_v1_calf121", "robot_stand_16dof_v2")
+    } elseif ($Task -match "Robot-16DOF-Flat") { @("robot_flat_16dof_zero4590_v1_calf121") }
     elseif ($Task -match "Stand") { @("robot_stand") }
     elseif ($Task -match "Flat") { @("robot_flat") }
     else { @("robot_stand") }

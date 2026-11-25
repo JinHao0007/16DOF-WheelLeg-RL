@@ -23,6 +23,10 @@ _env_cfgs.get_robot_cfg = robot_16dof.get_robot_cfg
 def apply_training_zero(cfg):
     """Use this when adding future 16DOF gait/obstacle tasks as well."""
     cfg.scene.entities["robot"] = robot_16dof.get_robot_cfg()
+    cfg.actions["leg_joint_pos"].clip = {
+        **(cfg.actions["leg_joint_pos"].clip or {}),
+        **{name: tuple(limits) for name, limits in robot_16dof.CALF_LIMITS.items()},
+    }
     # Start leg angles at the reference. Terrain/root velocity randomization
     # remains task-specific; later pose-noise curricula must be explicit.
     reset_joints = cfg.events.get("reset_joints")
@@ -34,7 +38,7 @@ def apply_training_zero(cfg):
 
 def register() -> None:
     stand_agent = stand_ppo_runner_cfg()
-    stand_agent.experiment_name = "robot_stand_16dof_zero4590_v1"
+    stand_agent.experiment_name = "robot_stand_16dof_zero4590_v1_calf121"
     stand_agent.max_iterations = 600
     register_mjlab_task(
         task_id="Robot-16DOF-Stand-v0",
@@ -43,7 +47,7 @@ def register() -> None:
         rl_cfg=stand_agent,
     )
     flat_agent = flat_ppo_runner_cfg()
-    flat_agent.experiment_name = "robot_flat_16dof_zero4590_v1"
+    flat_agent.experiment_name = "robot_flat_16dof_zero4590_v1_calf121"
     register_mjlab_task(
         task_id="Robot-16DOF-Flat-v0",
         env_cfg=apply_training_zero(_env_cfgs.flat_env_cfg(play=False)),
@@ -55,7 +59,7 @@ def register() -> None:
         ("Crawl", _env_cfgs.crawl_env_cfg, crawl_ppo_runner_cfg),
     ):
         agent = agent_builder()
-        agent.experiment_name = f"robot_{label.lower()}_16dof_zero4590_v1"
+        agent.experiment_name = f"robot_{label.lower()}_16dof_zero4590_v1_calf121"
         register_mjlab_task(
             task_id=f"Robot-16DOF-{label}-v0",
             env_cfg=apply_training_zero(env_builder(play=False)),
@@ -66,7 +70,7 @@ def register() -> None:
     # Preserve the input/output reference of the already trained model_500.
     def legacy_cfg(play):
         cfg = _env_cfgs.stand_env_cfg(play=play)
-        asset = cfg.scene.entities["robot"]
+        asset = robot_16dof.get_legacy_robot_cfg()
         pose = {}
         for leg in ("FR", "FL", "RL", "RR"):
             sign = 1 if leg in ("FR", "FL") else -1
@@ -75,7 +79,8 @@ def register() -> None:
                          f"{leg}_calf_joint": -sign * 1.005,
                          f"{leg}_wheel_joint": 0.0})
         cfg.scene.entities["robot"] = replace(
-            asset, init_state=replace(asset.init_state, pos=(0, 0, 0.376), joint_pos=pose))
+            asset, spec_fn=robot_16dof.get_legacy_spec,
+            init_state=replace(asset.init_state, pos=(0, 0, 0.376), joint_pos=pose))
         cfg.rewards["base_height_l2"].params["target_height"] = 0.376
         return cfg
 
