@@ -1,4 +1,4 @@
-﻿from mjlab.tasks.registry import register_mjlab_task
+from mjlab.tasks.registry import register_mjlab_task
 from .config.env_cfgs import (
     flat_env_cfg,
     rough_env_cfg,
@@ -70,3 +70,9 @@ register_mjlab_task(
     play_env_cfg=combo_env_cfg(play=True),
     rl_cfg=combo_ppo_runner_cfg(),
 )
+
+
+# Custom 16DOF tasks use the versioned 45/90-degree startup reference.
+from .config.task_16dof import register as _register_16dof
+
+_register_16dof()

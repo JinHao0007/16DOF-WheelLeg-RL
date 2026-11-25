@@ -1,6 +1,42 @@
 ﻿# 16DOF-WheelLeg-RL
 
-## 本分支：2026-11-25 自研 16DOF 站立模型成果
+## 当前分支：统一训练启动零点（45°/90°）
+
+分支 `training/zero-pose-45-90` 将自研16DOF后续站立、行走、步态、崎岖地形、
+爬行及新增越障任务的启动参考统一为：
+
+| 关节 | 前腿 FR/FL 模型角度 | 后腿 RL/RR 模型角度 | 软件相对角 |
+|---|---:|---:|---:|
+| hip | 0° | 0° | 0° |
+| thigh | +45° | −45° | 0° |
+| calf | −90° | +90° | 0° |
+
+软件角 = 模型角 − 参考角；初始机身原点高度约 **33.64 cm**。模型原始关节轴、
+几何和限位保持原义；硬件编码器仍需实际标定。JSON配置、模型XML和网格均在
+[`assets/16dof/`](assets/16dof/)，规则见
+[`docs/TRAINING_ZERO_REFERENCE.md`](docs/TRAINING_ZERO_REFERENCE.md)。
+
+本分支在仓库根目录注册 `Robot-16DOF-Stand-v0`、`Robot-16DOF-Flat-v0`、
+`Robot-16DOF-Rough-v0`、`Robot-16DOF-Crawl-v0`，均采用新启动参考。
+以后增加自研16DOF步态/越障任务必须调用 `apply_training_zero(cfg)`。
+`AGENTS.md` 已记录长期约定。目标高度/动作可以改变，不能另换零点而不记录版本。
+
+```powershell
+# 使用项目 Python 环境验证参考
+.\run_project_python.ps1 tools\verify_training_zero.py
+# 原生 MuJoCo 打开指定姿态，空格开始/暂停，R恢复
+.\run_model_native.ps1 -CalibrationPose
+# 开始未来的行走或爬行训练
+.\run_train.ps1 Robot-16DOF-Flat-v0 512 600 -CaptureNan
+.\run_train.ps1 Robot-16DOF-Crawl-v0 512 600 -CaptureNan
+```
+
+需先按项目依赖创建 `.venv`，上述脚本使用本目录环境。当前结果是零点配置、
+观测/动作一致性验证与2轮短训练检查；**没有训练出新的行走或爬行策略**。
+已交付的第500轮策略使用旧参考，应通过 LegacyV2 任务或原ONNX契约运行，
+不直接加载到新参考任务。旧策略压缩包和其 SHA-256 保持不变。
+
+## 历史交付：2026-11-25 站立模型成果
 
 分支 `training/stand-2026-11-25` 从 `main` 建立，用于向队友交付本次训练结果。
 **队友只需下载一个文件：[stand-2026-11-25.zip](training_results/stand-2026-11-25.zip)。**

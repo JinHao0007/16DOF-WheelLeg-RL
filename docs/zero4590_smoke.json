@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-25",
+  "pose_version": "zero-45-90-v1",
+  "task": "Robot-16DOF-Stand-v0",
+  "environments": 64,
+  "iterations": 2,
+  "completed": true,
+  "result": "startup and training pipeline smoke test only; no trained policy delivered",
+  "experiment": "robot_stand_zero4590_smoke",
+  "console_nan_detection_zero_records": 2
+}

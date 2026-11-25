@@ -1,0 +1,79 @@
+# 自研 16DOF 统一训练零点：zero-45-90-v1
+
+从 2026-11-25 起，后续自研 16DOF 站立、平地行走、步态、崎岖地形、爬行及新增
+越障任务统一采用本参考。机器人的运动目标可改变，但不能随任务重新定义机械零点。
+
+## 角度含义
+
+唯一配置源为 `assets/16dof/training_zero.json`，运行时由 `robot_16dof.py` 读取。
+
+| 关节 | FR / FL 模型角度 | RL / RR 模型角度 | 在新软件坐标中的角度 |
+|---|---:|---:|---:|
+| hip | 0° | 0° | 0° |
+| thigh | +45° | −45° | 0° |
+| calf | −90° | +90° | 0° |
+
+这些模型角度以 MJCF 原始关节坐标为基准：机身水平、髋外展为零时，腿伸直向下
+近似原始几何零位。膝关节是相对大腿的转角；前腿小腿相对竖直方向约为
+`45°−90°=−45°`。原始 calf=0 不在当前膝关节物理限位内，不要求真机摆到那里。
+
+新零点只改变参考角，保留 MJCF 的轴、连杆几何和原始关节限位：
+
+```text
+软件腿角 = 模型腿角 − 参考角
+模型腿角目标 = 参考角 + 动作缩放 × 延迟/滤波后的策略动作
+```
+
+12 个腿部位置观测在精确参考姿态下均为零；16 维原始动作全为零时，腿部位置
+目标为参考角，轮部目标为零转速。4 个轮子的连续转角不属于腿部标定零点。
+这不是硬件编码器清零命令，实际编码器方向、减速比和偏置仍需真机逐个标定。
+
+## 启动状态与任务目标
+
+机身原点 `base_link` 初始高度为 **0.3363878296 m**，由轮子接近地面计算，含
+0.2 mm 初始间隙。`assets/16dof/16dof.xml` 的 home keyframe 与 JSON 一致。
+这是默认启动高度，不能把它误读为外壳高度或“最高、最稳”的认证结果。
+
+目前统一注册的任务如下。训练与 play 配置均使用这一启动参考；已有任务的
+地形、机身位置/速度随机化等仍保留各自设置。腿部启动偏移设为零，若以后增加
+关节扰动，应明确围绕此参考设置。训练中机器人可以偏离参考、升高、蹲伏、抬腿。
+
+| 任务 | 实验名 |
+|---|---|
+| `Robot-16DOF-Stand-v0` | `robot_stand_16dof_zero4590_v1` |
+| `Robot-16DOF-Flat-v0` | `robot_flat_16dof_zero4590_v1` |
+| `Robot-16DOF-Rough-v0` | `robot_rough_16dof_zero4590_v1` |
+| `Robot-16DOF-Crawl-v0` | `robot_crawl_16dof_zero4590_v1` |
+
+以后开发独立步态、爬坡、梅花桩等自研 16DOF 任务时，使用
+`robot.config.task_16dof.apply_training_zero(cfg)`，而不是直接复用 go2w 的任务 ID。
+步态本身尚未单独训练；注册任务配置不等于已经具有对应运动能力。
+
+Windows 启动示例（使用项目现有环境）：
+
+```powershell
+.\run_project_python.ps1 tools\verify_training_zero.py
+.\run_train.ps1 Robot-16DOF-Flat-v0 512 600 -CaptureNan
+.\run_train.ps1 Robot-16DOF-Crawl-v0 512 600 -CaptureNan
+.\run_model_native.ps1 -CalibrationPose
+```
+
+## 旧模型兼容
+
+已交付的 `model_500` 属于旧参考：thigh ±0.065、calf ∓1.005 rad，高度0.376 m。
+它的权重、ONNX、回放契约和 `training_results/stand-2026-11-25.zip` 保持原样。
+
+- 原生 ONNX 回放继续读取旧 `model_500.replay.json`，不受新 JSON 影响。
+- 旧策略的 mjlab 回放使用 `Robot-16DOF-Stand-LegacyV2-v0`。
+- `run_play_web.ps1` 遇到 `robot_stand_16dof_v2` 目录下的权重会选择 LegacyV2。
+- 重命名/移动旧 checkpoint 后请显式指定 LegacyV2；不要用新任务直接加载旧策略。
+- `evaluate_stand_16dof.py` 提供 `--stance legacy-v2`。早期蹲姿 model_399 仍用 `old`。
+
+## 验证与边界
+
+`verify_training_zero.py` 检查4个任务的 train/play 初始参考、关节限位、XML home、
+零位置观测、零动作目标和旧V2参考。64环境×2轮新参考短训练只验证程序能运行，
+不是稳定性或抗扰评估。新零点还没有完成行走、爬行或最优站姿的正式训练。
+
+当前训练实体仍保留源模型和 mjlab servo，共32个 MuJoCo actuator 槽；本次只
+统一启动参考，不更改这项既有执行器设置。正式追求真机力矩一致性前应专门核查。

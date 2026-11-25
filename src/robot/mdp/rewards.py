@@ -1146,3 +1146,33 @@ def base_ground_contact_metric(env, sensor_name: str) -> torch.Tensor:
     while contact.ndim > 1:
         contact = torch.any(contact, dim=-1)
     return contact.float()
+
+
+def base_height_metric(env, asset_cfg=None) -> torch.Tensor:
+    """Log world-frame base height to compare stance candidates."""
+    if asset_cfg is None:
+        asset_cfg = SceneEntityCfg("robot")
+    asset = env.scene[asset_cfg.name]
+    return asset.data.root_link_pos_w[:, 2]
+
+def base_ang_vel_metric(env, asset_cfg=None) -> torch.Tensor:
+    """Log base angular speed; lower indicates a steadier stance."""
+    if asset_cfg is None:
+        asset_cfg = SceneEntityCfg("robot")
+    asset = env.scene[asset_cfg.name]
+    return torch.linalg.vector_norm(asset.data.root_link_ang_vel_b, dim=-1)
+
+def leg_torque_metric(env, asset_cfg=None) -> torch.Tensor:
+    """Log mean absolute torque over the 12 leg joints."""
+    if asset_cfg is None:
+        asset_cfg = SceneEntityCfg(
+            "robot", joint_names=naming.LEG_JOINT_PATTERNS
+        )
+    asset = env.scene[asset_cfg.name]
+    if asset_cfg.joint_names is not None and isinstance(asset_cfg.joint_ids, slice):
+        # The fallback cfg is not resolved by the metrics manager.
+        joint_ids = asset.find_joints(asset_cfg.joint_names)[0]
+    else:
+        joint_ids = asset_cfg.joint_ids
+    torque = asset.data.qfrc_actuator[:, joint_ids]
+    return torch.mean(torch.abs(torque), dim=-1)

@@ -1,4 +1,4 @@
-﻿"""Robot Environment Configurations for RL Locomotion Training.
+"""Robot Environment Configurations for RL Locomotion Training.
 
 This module defines the Manager-Based RL Environment Configurations for unitree robots
 equipped with actuated wheels and leg joints. It handles sensors, actuators, command
@@ -1794,5 +1794,79 @@ def combo_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
             cfg.scene.terrain.terrain_generator.curriculum = True
             cfg.scene.terrain.terrain_generator.num_rows = max(1, max_level + 1)
             cfg.scene.terrain.max_init_terrain_level = max_level
+
+    return cfg
+
+
+from ..mdp.rewards import (
+    upright_metric, base_height_metric,
+    base_ang_vel_metric, leg_torque_metric,
+)
+
+def stand_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
+    """站立任务（教学用最小任务）：指令恒为零，只要求「站稳、别摔、别抖」。
+
+    和 Flat 的区别只有三处：
+      1. 速度指令范围全部设为 0，机器人没有「走」的目标；
+      2. 关掉所有和移动/轮子滚动相关的奖励，只保留姿态、高度、平滑、力矩惩罚；
+      3. 回合缩短到 10 s（站住 500 步即算成功）。
+    """
+    cfg = _make_base_env_cfg()
+    cfg.scene.entities = {"robot": get_robot_cfg()}
+    cfg.episode_length_s = 10.0
+
+    # 1) 指令恒为零：没有前进/转向要求，只站住。
+    twist = cfg.commands["twist"]
+    twist.ranges.lin_vel_x = (0.0, 0.0)
+    twist.ranges.lin_vel_y = (0.0, 0.0)
+    twist.ranges.ang_vel_z = (0.0, 0.0)
+    twist.heading_command = False
+    twist.ranges.heading = None
+    twist.rel_standing_envs = 1.0
+    twist.rel_forward_envs = 0.0
+    twist.rel_heading_envs = 0.0
+
+    # 2) 奖励：去掉「移动」类，留下「站得稳」类。
+    cfg.rewards["track_lin_vel"].weight = 0.0
+    cfg.rewards["track_ang_vel"].weight = 0.0
+    cfg.rewards["wheel_roll_tracking"].weight = 0.0
+    cfg.rewards["wheel_contact_bonus"].weight = 0.0
+    cfg.rewards["feet_air_time"].weight = 0.0
+
+    cfg.rewards["upright"].weight = 2.0            # 机身竖直
+    cfg.rewards["base_height_l2"].weight = -3.0    # 高度接近参考站姿
+    cfg.rewards["body_ang_vel"].weight = -0.2      # 别晃
+    cfg.rewards["stand_still"].weight = -1.0       # 别乱动
+    cfg.rewards["leg_motion_penalty"].weight = -0.1
+    cfg.rewards["action_rate"].weight = -0.05      # 动作平滑
+    cfg.rewards["is_terminated"].weight = -200.0   # 摔倒代价极高
+
+    # Keep validation metrics alongside reward curves. These make it possible
+    # to compare stance runs by height, residual body motion and motor effort.
+    cfg.metrics = {
+        "upright": MetricsTermCfg(func=upright_metric),
+        "base_height_m": MetricsTermCfg(func=base_height_metric),
+        "base_ang_vel_rad_s": MetricsTermCfg(func=base_ang_vel_metric),
+        "mean_abs_leg_torque_nm": MetricsTermCfg(
+            func=leg_torque_metric,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot", joint_names=naming.LEG_JOINT_PATTERNS
+                )
+            },
+        ),
+    }
+
+    # 3) 回放：不掉线、不推、不噪声。
+    if play:
+        cfg.episode_length_s = int(1e9)
+        cfg.observations["actor"].enable_corruption = False
+        cfg.events.pop("push_robot", None)
+        cfg.curriculum = {}
+        # 可视化的指令滑块要求 min < max；训练时指令恒为 0，回放只是为了让面板能开，
+        # 策略本身没学过跟指令，拖滑块不会响应（这正好可以演示「没训练过的行为」）。
+        twist.ranges.lin_vel_x = (-0.3, 0.3)
+        twist.ranges.lin_vel_y = (-0.3, 0.3)
+        twist.ranges.ang_vel_z = (-0.3, 0.3)
 
     return cfg

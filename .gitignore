@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -29,3 +29,10 @@ Thumbs.db
 pyproject.toml.bak
 !assets/videos/
 !assets/videos/**/*.mp4
+
+# Local runtimes, generated caches and standalone GUI settings
+.cache/
+.python/
+torchinductor_*/
+mjkey.txt
+mujoco.ini

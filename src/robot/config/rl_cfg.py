@@ -1,4 +1,4 @@
-﻿from mjlab.rl import (
+from mjlab.rl import (
     RslRlModelCfg,
     RslRlOnPolicyRunnerCfg,
     RslRlPpoAlgorithmCfg,
@@ -87,4 +87,12 @@ def combo_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     """两条赛道并排的组合任务。"""
     cfg = stepstone_ppo_runner_cfg()
     cfg.experiment_name = "robot_combo"
+    return cfg
+
+
+def stand_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
+    """Shared standing defaults; robot-specific runs override their name."""
+    cfg = flat_ppo_runner_cfg()
+    cfg.experiment_name = "robot_stand"
+    cfg.max_iterations = 3_000
     return cfg
