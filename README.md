@@ -1,5 +1,33 @@
 ﻿# 16DOF-WheelLeg-RL
 
+## 本分支：2026-11-25 自研 16DOF 站立模型成果
+
+分支 `training/stand-2026-11-25` 从 `main` 建立，用于向队友交付本次训练结果。
+**队友只需下载一个文件：[stand-2026-11-25.zip](training_results/stand-2026-11-25.zip)。**
+包内有最佳 PyTorch 权重、ONNX、MuJoCo 模型与回放程序、录像、参数、评估报告和
+TensorBoard 曲线，不依赖原来的训练目录。主分支及原 go2w 工程不受影响。
+
+压缩包采用 LZMA，未使用 Git LFS。请用 **Python 或 7-Zip** 解压；Windows 自带
+解压器可能不支持该压缩方式。在保存压缩包的非 C 盘目录中执行：
+
+```powershell
+py -3.12 -m zipfile -e stand-2026-11-25.zip .
+cd stand-2026-11-25
+.\setup.ps1  # 首次安装回放依赖，需 Python 3.12
+.\play.ps1   # 显示最佳站立策略的 MuJoCo 回放
+```
+
+选中模型为 `model_500`：600 轮/512 环境训练；64 环境×20 秒及水平速度脉冲测试
+均未摔倒，ONNX 数值对齐和原生 MuJoCo 0/1/2 步延迟回放通过。
+这是本次测试范围内的最佳候选，**只验证了站立，尚未训练行走**。
+包内 README 写有使用方法、接口说明和限制，`MANIFEST.json` 提供文件哈希。
+
+压缩包大小为 79,502,204 字节，SHA-256：
+`ad2df31ca1ab9004922b68b82e48b3f20d9643a00bdd6479bb686d297fe548c6`。
+已解压校验 26 个文件，模型、ONNX 和回放程序与本地已通过回放的版本一致。
+
+下面保留原仓库 go2w 工程的说明，与本次自研 16DOF 结果包分开使用。
+
 [![CI](https://github.com/wusi321/16DOF-WheelLeg-RL/actions/workflows/main.yml/badge.svg)](https://github.com/wusi321/16DOF-WheelLeg-RL/actions/workflows/main.yml)
 
 16 自由度轮足机器人（Unitree **go2w** 模型）的强化学习训练工程。
